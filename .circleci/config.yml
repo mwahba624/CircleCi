@@ -21,8 +21,9 @@ jobs:
     steps:
       - run:
           name: Deploy to Render Staging
-          command: |
-            echo "Deploying to Render Staging"
+          # TODO: What is happening in the following command?
+          command: | # echoses a message indicating that the app is being deployed to Render Staging and then triggers the deplooyment using CURL
+            echo "Deploying to Render Staging" 
             curl $RENDER_STAGING_DEPLOYHOOK
 
 workflows:
@@ -33,11 +34,10 @@ workflows:
           name: run-component-tests
           cypress-command: npx cypress run --component
       - deploy-to-render-staging:
-          requires:
+          # TODO: What does the requires key do?
+          requires: # ensures that the deployment onlyy happens if the component tests pass
             - run-component-tests
-          filters:
+          # TODO: What does the filters key do?
+          filters: # ensures that the deployment only happens if the branch is main 
             branches:
               only: main
-
-
-  
