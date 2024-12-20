@@ -21,23 +21,41 @@ jobs:
     steps:
       - run:
           name: Deploy to Render Staging
-          # TODO: What is happening in the following command?
-          command: | # echoses a message indicating that the app is being deployed to Render Staging and then triggers the deplooyment using CURL
-            echo "Deploying to Render Staging" 
+          command: |
+            echo "Deploying to Render Staging"
             curl $RENDER_STAGING_DEPLOYHOOK
+  deploy-to-render-production:
+    docker:
+      - image: cimg/base:current
+    steps:
+      - run:
+          name: Deploy to Render Production
+          command: |
+            echo "Deploying to Render production"
+            curl $RENDER_PRODUCTION_DEPLOYHOOK
 
 workflows:
-  run-tests-and-deploy-to-staging:
+  run-tests-and-deploy-to-staging-hold-then-production:
     jobs:
       - start-server
       - cypress/run:
           name: run-component-tests
           cypress-command: npx cypress run --component
       - deploy-to-render-staging:
-          # TODO: What does the requires key do?
-          requires: # ensures that the deployment onlyy happens if the component tests pass
+          requires:
             - run-component-tests
-          # TODO: What does the filters key do?
-          filters: # ensures that the deployment only happens if the branch is main 
+          filters:
+            branches:
+              only: main
+      - hold:
+          # TODO: How can we provide approval for the hold job?
+          type: approval
+          requires:
+            - deploy-to-render-staging
+      - deploy-to-render-production:
+          # TODO: Why can we specify that the only requirement for this job is the hold job?
+          requires:
+            - hold
+          filters:
             branches:
               only: main
